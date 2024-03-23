@@ -97,17 +97,43 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 员工分页查询
+     *
      * @param employeePageQueryDTO
      * @return
      */
     @Override
     public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
-        PageHelper.startPage(employeePageQueryDTO.getPage(),employeePageQueryDTO.getPageSize());
+        PageHelper.startPage(employeePageQueryDTO.getPage(), employeePageQueryDTO.getPageSize());
         Page<Employee> employeePage = employeeMapper.pageQuery(employeePageQueryDTO);
 
         long total = employeePage.getTotal();
         List<Employee> records = employeePage.getResult();
 
-        return new PageResult(total,records);
+        return new PageResult(total, records);
+    }
+
+    /**
+     * 启用、禁用员工账号
+     *
+     * @param status 状态
+     * @param id     根据ID修改状态
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        //update emp set status=? where id=?
+        //可以写成动态sql语句,根据Id修改不同的属性字段
+
+        // 原始方法构建对象
+        //Employee employee = new Employee();
+        //employee.setStatus(status);
+        //employee.setId(id);
+
+        //使用build的方法构建对象
+        Employee employee = Employee.builder()
+                .id(id)
+                .status(status)
+                .build();
+
+        employeeMapper.update(employee);
     }
 }
