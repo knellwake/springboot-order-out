@@ -27,5 +27,4 @@ public class DishFlavor implements Serializable {
 
     //口味数据list
     private String value;
-
 }
