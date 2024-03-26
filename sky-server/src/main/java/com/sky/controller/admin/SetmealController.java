@@ -42,4 +42,29 @@ public class SetmealController {
         PageResult pageResult = setmealService.pageQuery(setmealPageQueryDTO);
         return Result.success(pageResult);
     }
+
+    /**
+     * 根据ID查询套餐数据
+     * @return
+     */
+    @ApiOperation("根据ID查询套餐数据")
+    @GetMapping("/{id}")
+    public Result<SetmealDTO> getById(@PathVariable Long id){
+        log.info("根据ID查询套餐数据：{}",id);
+        SetmealDTO setmealDTO = setmealService.getById(id);
+        return Result.success(setmealDTO);
+    }
+
+    /**
+     * 修改/更新套餐
+     * @return
+     */
+    @ApiOperation("修改套餐")
+    @PutMapping
+    public Result update(@RequestBody SetmealDTO setmealDTO){
+        log.info("修改套餐：{}",setmealDTO);
+        setmealService.update(setmealDTO);
+        return Result.success();
+    }
+
 }
