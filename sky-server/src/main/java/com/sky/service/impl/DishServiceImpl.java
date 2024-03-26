@@ -51,6 +51,13 @@ public class DishServiceImpl implements DishService {
 
         Long dishId = dish.getId();
         // 口味表需要设置对应的 菜品ID，进行绑定（一对多）
+        /**
+         * 传递过来的集合 DishDTO -> List<DishFlavor>
+         *     因为传来的数据 ：
+         *      包括填写的口味id名字和口味名称下的口味数据List
+         *      不包括 菜品ID 所以需要赋值绑定 是哪个菜品的口味
+         *          还要先判断有没有添加口味数据
+         */
         List<DishFlavor> flavors = dishDTO.getFlavors();
         if (flavors != null && flavors.size() > 0) {
             flavors.forEach(dishFlavor -> {
@@ -149,5 +156,20 @@ public class DishServiceImpl implements DishService {
             });
             dishFlavorMapper.insertBatch(flavors);
         }
+    }
+
+    /**
+     * 起售禁售菜品
+     *
+     * @param status
+     * @param id
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Dish dish = Dish.builder()
+                .status(status)
+                .id(id)
+                .build();
+        dishMapper.update(dish);
     }
 }
