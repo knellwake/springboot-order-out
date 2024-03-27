@@ -61,10 +61,17 @@ public interface DishMapper {
     void update(Dish dish);
 
 
+    ///**
+    // * 根据分类Id查询菜品
+    // * @param categoryId
+    // * @return
+    // */
+    //List<Dish> getByCategoryId(Long categoryId);
+
     /**
      * 根据分类Id查询菜品
-     * @param categoryId
+     * @param dish
      * @return
      */
-    List<Dish> getByCategoryId(Long categoryId);
+    List<Dish> list(Dish dish);
 }

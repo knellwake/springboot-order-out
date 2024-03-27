@@ -21,13 +21,19 @@
             </set>
         where id = #{id}
     </update>
-    <select id="pagequery" resultType="com.sky.vo.SetmealVO">
-        select * from setmeal
+    <delete id="deleteBatch">
+        delete from setmeal where id in
+                            <foreach collection="ids" item="id" separator="," open="(" close=")">
+                                #{id}
+                            </foreach>
+    </delete>
+    <select id="pageQuery" resultType="com.sky.vo.SetmealVO">
+        select s.*,c.name as categoryName from setmeal s left join category c on c.id = s.category_id
         <where>
-            <if test="name!=null and name!=''">and name like concat('%',#{name},'%')</if>
-            <if test="categoryId != null">and category_id = #{categoryId}</if>
-            <if test="status!=null">and status = #{status}</if>
+            <if test="name!=null and name!=''">and s.name like concat('%',#{name},'%')</if>
+            <if test="categoryId != null">and s.category_id = #{categoryId}</if>
+            <if test="status!=null">and s.status = #{status}</if>
         </where>
-        order by update_time desc
+        order by s.update_time desc
     </select>
 </mapper>

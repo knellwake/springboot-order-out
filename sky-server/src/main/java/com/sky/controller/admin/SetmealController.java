@@ -5,11 +5,14 @@ import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.SetmealService;
+import com.sky.vo.SetmealVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/setmeal")
@@ -49,10 +52,10 @@ public class SetmealController {
      */
     @ApiOperation("根据ID查询套餐数据")
     @GetMapping("/{id}")
-    public Result<SetmealDTO> getById(@PathVariable Long id){
+    public Result<SetmealVO> getById(@PathVariable Long id){
         log.info("根据ID查询套餐数据：{}",id);
-        SetmealDTO setmealDTO = setmealService.getById(id);
-        return Result.success(setmealDTO);
+        SetmealVO setmealVo = setmealService.getByIdWithDish(id);
+        return Result.success(setmealVo);
     }
 
     /**
@@ -67,4 +70,27 @@ public class SetmealController {
         return Result.success();
     }
 
+    /**
+     * 套餐起售、停售
+     * @return
+     */
+    @ApiOperation("套餐起售、停售")
+    @PostMapping("/status/{status}")
+    public Result startOrStop(@PathVariable Integer status,Long id){
+        log.info("套餐起售、停售：{},{}",status,id);
+        setmealService.startOrStop(status,id);
+        return Result.success();
+    }
+
+    /**
+     * 批量删除套餐
+     * @return
+     */
+    @ApiOperation("批量删除套餐")
+    @DeleteMapping
+    public Result delete(@RequestParam List<Long> ids){
+        log.info("批量删除套餐：{}",ids);
+        setmealService.deleteBatch(ids);
+        return Result.success();
+    }
 }
