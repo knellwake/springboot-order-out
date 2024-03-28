@@ -69,7 +69,7 @@ public interface DishMapper {
     //List<Dish> getByCategoryId(Long categoryId);
 
     /**
-     * 根据分类Id查询菜品
+     * 查询通用sql
      * @param dish
      * @return
      */

@@ -1,8 +1,11 @@
 package com.sky.mapper;
 
-import com.sky.entity.User;
+import com.sky.entity.*;
+import com.sky.vo.DishVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 @Mapper
 public interface UserMapper {
@@ -17,7 +20,7 @@ public interface UserMapper {
     User getByOpenid(String openid);
 
     /**
-     * 插入用户数据，注册用户
+     * 插入新用户
      * @param user
      */
     void insert(User user);
