@@ -42,4 +42,26 @@
         </set>
         where id = #{id}
     </update>
+    <select id="selectOrders" resultType="com.sky.vo.OrderVO">
+<!--                select os.*,od.* from orders os left join order_detail od on os.id = od.order_id-->
+<!--                <where>-->
+<!--                    <if test="status!=null">and os.status=#{status}</if>-->
+<!--                    <if test="userId!=null">and os.user_id=#{userId}</if>-->
+<!--                </where>-->
+
+        SELECT * FROM orders
+                        <where>
+                            <if test="status!=null">and status=#{status}</if>
+                            <if test="userId!=null">and user_id=#{userId}</if>
+                        </where>
+    </select>
+
+
+    <!--    <select id="selectOrders" resultType="com.sky.dto.OrdersDTO">-->
+<!--        select os.*,od.* from orders os left join order_detail od on os.id = od.order_id-->
+<!--        <where>-->
+<!--            <if test="status!=null">and os.status=#{status}</if>-->
+<!--            <if test="userId!=null">and os.user_id=#{userId}</if>-->
+<!--        </where>-->
+<!--    </select>-->
 </mapper>
