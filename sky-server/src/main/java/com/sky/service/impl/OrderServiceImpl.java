@@ -5,10 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
@@ -285,11 +282,91 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public OrderStatisticsVO countOrderStatus() {
-        Long currentId = BaseContext.getCurrentId();
-
         OrderStatisticsVO orderStatisticsVO = orderMapper.countStatus();
-
         return orderStatisticsVO;
+    }
+
+    /**
+     * 接单
+     *
+     * @param ordersConfirmDTO
+     */
+    @Override
+    public void updateConfirm(OrdersConfirmDTO ordersConfirmDTO) {
+        OrderVO orderVO = orderMapper.selectOrdersById(ordersConfirmDTO.getId());
+        Orders orders = new Orders();
+        BeanUtils.copyProperties(orderVO, orders);
+        if (orders.getPayStatus().equals(Orders.PAID)) {
+            orders.setStatus(Orders.CONFIRMED);
+        }
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 拒单
+     *
+     * @param ordersRejectionDTO
+     */
+    @Override
+    public void updateRejection(OrdersRejectionDTO ordersRejectionDTO) {
+        OrderVO orderVO = orderMapper.selectOrdersById(ordersRejectionDTO.getId());
+        Orders orders = new Orders();
+        BeanUtils.copyProperties(orderVO, orders);
+        orders.setStatus(Orders.CANCELLED);
+        orders.setRejectionReason(orders.getRejectionReason());
+        orders.setCancelTime(LocalDateTime.now());
+        orders.setPayStatus(Orders.REFUND);
+
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 取消订单
+     *
+     * @param ordersCancelDTO
+     */
+    @Override
+    public void updateCancel(OrdersCancelDTO ordersCancelDTO) {
+        OrderVO orderVO = orderMapper.selectOrdersById(ordersCancelDTO.getId());
+        Orders orders = new Orders();
+        BeanUtils.copyProperties(orderVO, orders);
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelTime(LocalDateTime.now());
+        orders.setCancelReason(ordersCancelDTO.getCancelReason());
+        orders.setPayStatus(Orders.REFUND);
+
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 派送订单
+     *
+     * @param id
+     */
+    @Override
+    public void updateDelivery(Long id) {
+        OrderVO orderVO = orderMapper.selectOrdersById(id);
+        Orders orders = new Orders();
+        BeanUtils.copyProperties(orderVO, orders);
+        orders.setId(id);
+        orders.setStatus(Orders.DELIVERY_IN_PROGRESS);
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 完成订单
+     *
+     * @param id
+     */
+    @Override
+    public void updateComplete(Long id) {
+        OrderVO orderVO = orderMapper.selectOrdersById(id);
+        Orders orders = new Orders();
+        BeanUtils.copyProperties(orderVO, orders);
+        orders.setId(id);
+        orders.setStatus(Orders.COMPLETED);
+        orders.setDeliveryTime(LocalDateTime.now());
+        orderMapper.update(orders);
     }
 
     /**

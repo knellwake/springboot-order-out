@@ -65,12 +65,4 @@
                SUM(CASE WHEN o.`status` = 4 THEN 1 ELSE 0 END) deliveryInProgress
         FROM orders o;
     </select>
-
-    <!--    <select id="selectOrders" resultType="com.sky.dto.OrdersDTO">-->
-    <!--        select os.*,od.* from orders os left join order_detail od on os.id = od.order_id-->
-    <!--        <where>-->
-    <!--            <if test="status!=null">and os.status=#{status}</if>-->
-    <!--            <if test="userId!=null">and os.user_id=#{userId}</if>-->
-    <!--        </where>-->
-    <!--    </select>-->
 </mapper>
