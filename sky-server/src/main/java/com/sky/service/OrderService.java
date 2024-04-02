@@ -5,8 +5,10 @@ import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.Orders;
 import com.sky.result.PageResult;
+import com.sky.result.Result;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,4 +41,23 @@ public interface OrderService {
      * @return
      */
     PageResult queryHistoryOrders(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    /**
+     * 查询订单详情
+     * @param id
+     * @return
+     */
+    OrderVO showDetails(Long id);
+
+    /**
+     * 取消订单
+     * @param id
+     */
+    void cancelOrder(Long id);
+
+    /**
+     * 再来一单
+     * @param id
+     */
+    void repetitionOrder(Long id);
 }

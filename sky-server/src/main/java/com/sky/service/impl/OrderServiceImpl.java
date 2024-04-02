@@ -15,6 +15,7 @@ import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.result.PageResult;
+import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
@@ -177,10 +178,67 @@ public class OrderServiceImpl implements OrderService {
         Page<OrderVO> ordersPage = orderMapper.selectOrders(ordersPageQueryDTO);
         List<OrderVO> result = ordersPage.getResult();
         for (OrderVO orderVO : result) {
-            List<OrderDetail> orderDetailList =   orderDetailMapper.selectBatchByOrderId(orderVO.getId());
+            List<OrderDetail> orderDetailList = orderDetailMapper.selectBatchByOrderId(orderVO.getId());
             orderVO.setOrderDetailList(orderDetailList);
         }
 
-        return new PageResult(ordersPage.getTotal(),ordersPage.getResult());
+        return new PageResult(ordersPage.getTotal(), ordersPage.getResult());
+    }
+
+    /**
+     * 查询订单详情
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public OrderVO showDetails(Long id) {
+        // 查询当前订单的多个订单详情 一对多
+        // 当前用户的 对应订单id
+        List<OrderDetail> orderDetails = orderDetailMapper.selectBatchByOrderId(id);
+        OrderVO orderVO = orderMapper.selectOrdersById(id);
+        orderVO.setOrderDetailList(orderDetails);
+        orderVO.setAddress(addressBookMapper.selectById(orderVO.getAddressBookId()).getDetail());
+        return orderVO;
+    }
+
+    /**
+     * 取消订单
+     *
+     * @param id
+     */
+    @Override
+    public void cancelOrder(Long id) {
+        OrderVO orderVO = orderMapper.selectOrdersById(id);
+        // 修改订单状态:
+        orderVO.setStatus(Orders.CANCELLED);
+        if (orderVO.getPayStatus().equals(Orders.PAID)) {
+            //退款逻辑
+            orderVO.setPayStatus(Orders.REFUND);
+        }
+        Orders orders = new Orders();
+        BeanUtils.copyProperties(orderVO, orders);
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 再来一单
+     *
+     * @param id
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void repetitionOrder(Long id) {
+        // 根据原订单Id 查询原订单表与订单详情
+        // 获取原订单的订单详情 添加进购物车
+        List<OrderDetail> orderDetails = orderDetailMapper.selectBatchByOrderId(id);
+
+        for (OrderDetail orderDetail : orderDetails) {
+            ShoppingCart shoppingCart = new ShoppingCart();
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            shoppingCart.setUserId(BaseContext.getCurrentId());
+            BeanUtils.copyProperties(orderDetail,shoppingCart);
+            shoppingCartMapper.insert(shoppingCart);
+        }
     }
 }
