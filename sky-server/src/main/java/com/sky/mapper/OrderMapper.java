@@ -4,6 +4,7 @@ import com.github.pagehelper.Page;
 import com.sky.dto.OrdersDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -49,4 +50,17 @@ public interface OrderMapper {
      */
     @Select("select * from orders where id=#{id}")
     OrderVO selectOrdersById(Long id);
+
+    /**
+     * 分页查询订单显示
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    Page<OrderVO> selectOrdersByCondition(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    /**
+     * 各个状态的订单数量统计
+     * @return
+     */
+    OrderStatisticsVO countStatus();
 }

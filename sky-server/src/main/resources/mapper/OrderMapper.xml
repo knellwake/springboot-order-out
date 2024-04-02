@@ -44,18 +44,33 @@
     </update>
     <select id="selectOrders" resultType="com.sky.vo.OrderVO">
         SELECT * FROM orders
-                        <where>
-                            <if test="status!=null">and status=#{status}</if>
-                            <if test="userId!=null">and user_id=#{userId}</if>
-                        </where>
+        <where>
+            <if test="status!=null">and status=#{status}</if>
+            <if test="userId!=null">and user_id=#{userId}</if>
+        </where>
+    </select>
+    <select id="selectOrdersByCondition" resultType="com.sky.vo.OrderVO">
+        select * from orders
+        <where>
+            <if test="number!=null">and number=#{number}</if>
+            <if test="phone!=null">and phone=#{phone}</if>
+            <if test="status!=null">and status=#{status}</if>
+            <if test="beginTime!=null and endTime!=null">and order_time between #{beginTime} and #{endTime}</if>
+        </where>
+        order by order_time desc
+    </select>
+    <select id="countStatus" resultType="com.sky.vo.OrderStatisticsVO">
+        SELECT SUM(CASE WHEN o.`status` = 2 THEN 1 ELSE 0 END) toBeConfirmed,
+               SUM(CASE WHEN o.`status` = 3 THEN 1 ELSE 0 END) confirmed,
+               SUM(CASE WHEN o.`status` = 4 THEN 1 ELSE 0 END) deliveryInProgress
+        FROM orders o;
     </select>
 
-
     <!--    <select id="selectOrders" resultType="com.sky.dto.OrdersDTO">-->
-<!--        select os.*,od.* from orders os left join order_detail od on os.id = od.order_id-->
-<!--        <where>-->
-<!--            <if test="status!=null">and os.status=#{status}</if>-->
-<!--            <if test="userId!=null">and os.user_id=#{userId}</if>-->
-<!--        </where>-->
-<!--    </select>-->
+    <!--        select os.*,od.* from orders os left join order_detail od on os.id = od.order_id-->
+    <!--        <where>-->
+    <!--            <if test="status!=null">and os.status=#{status}</if>-->
+    <!--            <if test="userId!=null">and os.user_id=#{userId}</if>-->
+    <!--        </where>-->
+    <!--    </select>-->
 </mapper>

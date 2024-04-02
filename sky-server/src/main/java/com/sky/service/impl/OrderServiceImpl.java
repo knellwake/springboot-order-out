@@ -18,20 +18,24 @@ import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
-import com.sky.vo.OrderPaymentVO;
-import com.sky.vo.OrderSubmitVO;
-import com.sky.vo.OrderVO;
+import com.sky.vo.*;
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.print.DocFlavor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class OrderServiceImpl implements OrderService {
     @Autowired
     private AddressBookMapper addressBookMapper;
@@ -237,8 +241,100 @@ public class OrderServiceImpl implements OrderService {
             ShoppingCart shoppingCart = new ShoppingCart();
             shoppingCart.setCreateTime(LocalDateTime.now());
             shoppingCart.setUserId(BaseContext.getCurrentId());
-            BeanUtils.copyProperties(orderDetail,shoppingCart);
+            BeanUtils.copyProperties(orderDetail, shoppingCart);
             shoppingCartMapper.insert(shoppingCart);
         }
+    }
+
+    /**
+     * 分页查询显示
+     *
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult queryPage(OrdersPageQueryDTO ordersPageQueryDTO) {
+        // 分页
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        Page<OrderVO> ordersPage = orderMapper.selectOrdersByCondition(ordersPageQueryDTO);
+        // 菜品信息设置
+        List<OrderVO> ordersList = getOrderVOList(ordersPage);
+        return new PageResult(ordersPage.getTotal(), ordersList);
+    }
+
+    /**
+     * 查询订单详情
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public OrderVO queryOrderDetails(Long id) {
+        OrderVO orderVO = orderMapper.selectOrdersById(id);
+
+        List<OrderDetail> orderDetails = orderDetailMapper.selectBatchByOrderId(orderVO.getId());
+        orderVO.setOrderDetailList(orderDetails);
+
+        return orderVO;
+    }
+
+    /**
+     * 各个状态的订单数量统计
+     *
+     * @return
+     */
+    @Override
+    public OrderStatisticsVO countOrderStatus() {
+        Long currentId = BaseContext.getCurrentId();
+
+        OrderStatisticsVO orderStatisticsVO = orderMapper.countStatus();
+
+        return orderStatisticsVO;
+    }
+
+    /**
+     * 根据订单id获取菜品信息字符串,设置订单数据显示与格式配置
+     *
+     * @return
+     */
+    public List<OrderVO> getOrderVOList(Page<OrderVO> ordersPage) {
+        List<OrderVO> ordersList = ordersPage.getResult();
+        // 获取每一条订单
+        for (OrderVO orderVO : ordersList) {
+            //订单地址设置
+            orderVO.setAddress(addressBookMapper.selectById(orderVO.getAddressBookId()).getDetail());
+
+            //订单详情表获取
+            List<OrderDetail> orderDetails = orderDetailMapper.selectBatchByOrderId(orderVO.getId());
+            // 订单详情表 菜品与数量 获取
+            String orderDishStr = getOrderDishStr(orderDetails);
+            orderVO.setOrderDishes(orderDishStr);
+
+            for (OrderDetail orderDetail : orderDetails) {
+                // 订单菜品口味备注设置
+                log.info("订单菜品口味:{}", orderDetail.getDishFlavor());
+                if (orderDetail.getDishFlavor() != null) {
+                    orderVO.setRemark(orderDetail.getDishFlavor() + ";" + orderVO.getRemark());
+                } else {
+                    orderVO.setRemark(orderVO.getRemark());
+                }
+            }
+        }
+        return ordersList;
+    }
+
+    /**
+     * 根据订单id获取菜品信息字符串
+     *
+     * @return
+     */
+    public String getOrderDishStr(List<OrderDetail> orderDetails) {
+        List<String> stringList = orderDetails.stream().map(x -> {
+            String orderDishNameNumber = x.getName() + "*" + x.getNumber() + ";";
+            return orderDishNameNumber;
+        }).collect(Collectors.toList());
+
+        String join = String.join("", stringList);
+        return join;
     }
 }
