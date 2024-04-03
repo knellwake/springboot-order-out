@@ -80,10 +80,11 @@ public class AddressBookServiceImpl implements AddressBookService {
      */
     @Override
     public void updateDefaultAddress(AddressBook addressBook) {
-        // 先传递默认值设置/当前用户Id -> 将全部地址默认值修改为0
-        addressBook.setIsDefault(0);
-        addressBook.setUserId(BaseContext.getCurrentId());
-        addressBookMapper.updateById(addressBook);
+        // 先将全部地址默认值修改为0
+        AddressBook addressBook1 = new AddressBook();
+        addressBook1.setUserId(BaseContext.getCurrentId());
+        addressBook1.setIsDefault(0);
+        addressBookMapper.updateByUserId(addressBook1);
         // 再根据传递的地址Id改为默认1
         addressBook.setIsDefault(1);
         addressBookMapper.updateById(addressBook);

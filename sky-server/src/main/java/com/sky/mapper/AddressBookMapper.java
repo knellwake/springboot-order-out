@@ -38,6 +38,7 @@ public interface AddressBookMapper {
 
     /**
      * 根据Id删除地址
+     *
      * @param id
      */
     @Delete("delete from address_book where id=#{id}")
@@ -45,7 +46,16 @@ public interface AddressBookMapper {
 
     /**
      * 根据id修改地址
+     *
      * @param addressBook
      */
     void updateById(AddressBook addressBook);
+
+    /**
+     * 根据当前用户Id修改全部的默认地址值 都为0
+     *
+     * @param addressBook1
+     */
+    @Update("update address_book set is_default = #{isDefault} where user_id=#{userId}")
+    void updateByUserId(AddressBook addressBook1);
 }
