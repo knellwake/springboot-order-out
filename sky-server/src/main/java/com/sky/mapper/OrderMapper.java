@@ -12,6 +12,7 @@ import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -87,4 +88,11 @@ public interface OrderMapper {
      */
     @Select("select * from orders where number=#{outTradeNo} and user_id =#{userId};")
     Orders getByNumberAndUserId(String outTradeNo, Long userId);
+
+    /**
+     * 统计每日营业额
+     * @param map
+     * @return
+     */
+    Double sumAmountByMap(Map map);
 }
