@@ -48,6 +48,7 @@
             <if test="status!=null">and status=#{status}</if>
             <if test="userId!=null">and user_id=#{userId}</if>
         </where>
+        order by order_time desc
     </select>
     <select id="selectOrdersByCondition" resultType="com.sky.vo.OrderVO">
         select * from orders

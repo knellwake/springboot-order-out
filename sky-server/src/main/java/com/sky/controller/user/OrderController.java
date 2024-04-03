@@ -52,6 +52,18 @@ public class OrderController {
     }
 
     /**
+     * 客户催单
+     * @param id 订单Id
+     * @return
+     */
+    @ApiOperation("客户催单")
+    @GetMapping("/reminder/{id}")
+    public Result reminder(@PathVariable Long id){
+        orderService.reminder(id);
+        return Result.success();
+    }
+
+    /**
      * 查询历史订单
      * @return
      */

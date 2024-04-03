@@ -464,6 +464,21 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 催单提醒
+     *
+     * @param id
+     */
+    @Override
+    public void reminder(Long id) {
+        Map map = new HashMap();
+        map.put("type", 2);//消息类型，1表示来单提醒,2表示客户催单
+        map.put("orderId", id);
+        map.put("content", "订单号：" + orderMapper.selectOrdersById(id).getNumber());
+
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
+    }
+
+    /**
      * 根据订单id获取菜品信息字符串,设置订单数据显示与格式配置
      *
      * @return
