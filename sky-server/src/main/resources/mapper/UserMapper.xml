@@ -8,7 +8,7 @@
         VALUES (#{openid}, #{name}, #{phone}, #{sex}, #{idNumber}, #{avatar}, #{createTime})
     </insert>
     <select id="sumUserByMap" resultType="java.lang.Integer">
-        select sum(id) from user
+        select count(id) from user
         <where>
             <if test="begin != null">
                 and create_time &gt;= #{begin}

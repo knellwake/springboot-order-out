@@ -1,16 +1,18 @@
 package com.sky.service.impl;
 
+import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
+import com.sky.vo.OrderReportVO;
+import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Array;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -18,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -117,5 +120,101 @@ public class ReportServiceImpl implements ReportService {
                 .totalUserList(StringUtils.join(userAllList, ","))
                 .newUserList(StringUtils.join(userNewAddList, ","))
                 .build();
+    }
+
+    /**
+     * 订单数据统计,总订单，已完成订单数，订单完成率，当日订单数，当日已完成订单数
+     *
+     * @param begin
+     * @param end
+     * @return
+     */
+    @Override
+    public OrderReportVO getOrderReportVO(LocalDate begin, LocalDate end) {
+        // 日期
+        List<LocalDate> dateList = new ArrayList<>();
+
+        dateList.add(begin);
+        while (!begin.equals(end)) {
+            begin = begin.plusDays(1);
+            dateList.add(begin);
+        }
+        // 每日订单数
+        List<Integer> orderList = new ArrayList<>();
+
+        // 每日有效订单数
+        List<Integer> orderDoneList = new ArrayList<>();
+
+        for (LocalDate date : dateList) {
+            LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+
+            Integer orderNum = getOrderCount(beginTime, endTime, null);
+            orderList.add(orderNum);
+
+            Integer orderDoneNum = getOrderCount(beginTime, endTime, Orders.COMPLETED);
+            orderDoneList.add(orderDoneNum);
+        }
+        // 时间区间内订单总数
+        Integer totalOrder = orderList.stream().reduce(Integer::sum).get();
+
+        // 时间区间内有效订单数
+        Integer validOrder = orderDoneList.stream().reduce(Integer::sum).get();
+
+        // 订单完成率
+        Double orderRate = 0.0;
+        if (totalOrder != 0) {
+            orderRate = validOrder.doubleValue() / totalOrder;
+        }
+        return OrderReportVO.builder()
+                .dateList(StringUtils.join(dateList, ","))
+                .orderCountList(StringUtils.join(orderList, ","))
+                .validOrderCountList(StringUtils.join(orderDoneList, ","))
+                .totalOrderCount(totalOrder)
+                .validOrderCount(validOrder)
+                .orderCompletionRate(orderRate)
+                .build();
+    }
+
+    /**
+     * 销售前十的商品（菜品/套餐）数据统计
+     *
+     * @param begin
+     * @param end
+     * @return
+     */
+    @Override
+    public SalesTop10ReportVO getSalesTop10ReportVO(LocalDate begin, LocalDate end) {
+        LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
+
+        List<GoodsSalesDTO> goodsSalesDTOList = orderMapper.getSalesTop10(beginTime, endTime);
+        // 商品名称列表
+        List<String> nameList = goodsSalesDTOList.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList());
+        String names = StringUtils.join(nameList, ",");
+        // 销量列表
+        List<Integer> numberList = goodsSalesDTOList.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList());
+        String numbers = StringUtils.join(numberList, ",");
+
+        return SalesTop10ReportVO.builder()
+                .nameList(names)
+                .numberList(numbers)
+                .build();
+    }
+
+    /**
+     * 根据时间区间统计指定状态的订单数量
+     *
+     * @param beginTime
+     * @param endTime
+     * @param status
+     * @return
+     */
+    private Integer getOrderCount(LocalDateTime beginTime, LocalDateTime endTime, Integer status) {
+        Map map = new HashMap();
+        map.put("status", status);
+        map.put("begin", beginTime);
+        map.put("end", endTime);
+        return orderMapper.countOrderByMap(map);
     }
 }
