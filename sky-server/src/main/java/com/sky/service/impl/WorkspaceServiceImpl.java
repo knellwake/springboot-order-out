@@ -51,33 +51,40 @@ public class WorkspaceServiceImpl implements WorkspaceService {
          * 新增用户：当日新增用户的数量
          */
         Map map = new HashMap();
-        map.put("begin", begin);
-        map.put("end", end);
-        // 新增用户数量
-        Integer countUser = userMapper.sumUserByMap(map);
-        // 总订单
-        Integer totalOrder = orderMapper.countOrderByMap(map);
-        map.put("status", Orders.CANCELLED);
-        // 营业额
-        Double turnover = orderMapper.sumAmountByMap(map);
-        // 有效订单
-        Integer validOrder = orderMapper.countOrderByMap(map);
+        map.put("begin",begin);
+        map.put("end",end);
 
-        Double orderRate = 0.0;
+        //查询总订单数
+        Integer totalOrderCount = orderMapper.countOrderByMap(map);
+
+        map.put("status", Orders.COMPLETED);
+        //营业额
+        Double turnover = orderMapper.sumAmountByMap(map);
+        turnover = turnover == null? 0.0 : turnover;
+
+        //有效订单数
+        Integer validOrderCount = orderMapper.countOrderByMap(map);
+
         Double unitPrice = 0.0;
-        if (totalOrder != 0 && validOrder != 0) {
-            // 订单完成率
-            orderRate = validOrder.doubleValue() / totalOrder;
-            // 平均客单价
-            unitPrice = turnover / validOrder;
+
+        Double orderCompletionRate = 0.0;
+        if(totalOrderCount != 0 && validOrderCount != 0){
+            //订单完成率
+            orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
+            //平均客单价
+            unitPrice = turnover / validOrderCount;
+            unitPrice = Double.valueOf(String.format("%.2f", unitPrice));
         }
+
+        //新增用户数
+        Integer newUsers = userMapper.sumUserByMap(map);
 
         return BusinessDataVO.builder()
                 .turnover(turnover)
-                .validOrderCount(validOrder)
-                .orderCompletionRate(orderRate)
+                .validOrderCount(validOrderCount)
+                .orderCompletionRate(orderCompletionRate)
                 .unitPrice(unitPrice)
-                .newUsers(countUser)
+                .newUsers(newUsers)
                 .build();
     }
 
